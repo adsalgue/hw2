@@ -22,9 +22,138 @@ add         :: Peano -> Peano -> Peano
 add Z     m = m 
 add (S n) m = S (add n m)
 
+
+{-@ thm_Z_add :: p:Peano -> { add p Z == p } @-}
+thm_Z_add :: Peano -> Proof
+
+thm_Z_add Z
+   = add Z Z
+   === Z
+   *** QED
+
+thm_Z_add (S p) 
+   = add (S p) Z
+   === S (add p Z) ? thm_Z_add p
+   === S p
+   *** QED
+
+{-@ lemma :: apple:_ -> banana:_ -> { add apple (S banana) == S (add apple banana) } @-}
+lemma :: Peano -> Peano -> Proof
+lemma Z b
+   = add Z (S b)
+   === S b
+   === S (add Z b)
+   *** QED
+
+lemma (S a') b
+   = add (S a') (S b)
+   === S (add a' (S b))
+      ? lemma a' b
+   === S (S (add a' b))
+   === S (add (S a') b)
+   *** QED
+
+
+{-@ thm_add_com :: x:_ -> y:_ -> {add x y == add y x} @-}
+thm_add_com :: Peano -> Peano -> Proof
+thm_add_com Z y
+   = add Z y
+   === y
+     ? thm_Z_add y
+   === add y Z
+   *** QED
+
+thm_add_com (S x') y
+   = add (S x') y
+   === S (add x' y)
+      ? thm_add_com x' y
+   === S (add y x')
+      ? lemma y x'
+   === add y (S x')
+   *** QED
+{-
 {-@ thm_add_assoc :: x:_ -> y:_ -> z:_ -> { add x (add y z) == (add (add x y) z) } @-}
 thm_add_assoc :: Peano -> Peano -> Peano -> Proof 
-thm_add_assoc = impossible "TBD"
+
+-- Case 1: all inputs are 0
+thm_add_assoc Z Z Z
+   = add Z (add Z Z)
+   === add Z Z
+   === (add (add Z Z) Z)
+   *** QED
+
+--- Case 2: all inputs are nonzero
+thm_add_assoc (S x') (S y') (S z')
+   = add (S x') (add (S y') (S z'))
+   === S (add x' (add (S y') (S z')))
+       ? thm_add_assoc x' (S y') (S z')
+   === S (add (add x' (S y')) (S z'))
+   === add (S (add x' (S y'))) (S z')
+   === add (add (S x') (S y')) (S z')
+   *** QED
+
+
+-- Case 3: x' Zero Zero
+thm_add_assoc x' Z Z
+    = add x' (add Z Z)
+    === add x' Z
+        ? thm_Z_add x'
+    === add (add x' Z) Z
+    *** QED
+
+-- Case 4: Zero y' Zero
+thm_add_assoc Z y' Z
+    = add Z (add y' Z)
+       ? thm_Z_add y'
+    === add Z y'
+       ? thm_Z_add (add y' Z)
+    === add (add Z y') Z
+    *** QED
+
+-- Case 5: Zero Zero z'
+thm_add_assoc Z Z z'
+    = add Z (add Z z')
+       ? thm_add_com Z z'
+    === add Z (add z' Z)
+       ? thm_Z_add z'
+    === add Z z'
+       ? thm_Z_add (add z' Z)
+    === add (add Z Z) z'
+    *** QED
+
+-- Case 6: x' y' Zero
+thm_add_assoc x' y' Z
+    = add x' (add y' Z)
+        ? thm_Z_add y'
+    === add x' y'
+        ? thm_Z_add (add x' y')
+    === add (add x' y') Z
+    *** QED
+
+-- Case 7: x' Zero y'
+thm_add_assoc x' Z y'
+    = add x' (add Z y')
+       ? thm_add_com Z y'
+    === add x' (add y' Z)
+       ? thm_Z_add x'
+    === add (add x' Z) (add y' Z)
+       ? thm_Z_add y'
+    === add (add x' Z) y'
+    *** QED
+
+-- Case 8: Zero y' z'
+thm_add_assoc Z x' y'
+    = add Z (add x' y')
+      ? thm_Z_add (add x' y')
+    === add x' y'
+      ? thm_Z_add x'
+    === add (add x' Z) y'
+      ? thm_add_com x' Z
+    === add (add Z x') y'
+    *** QED
+-}
+
+
 
 --------------------------------------------------------------------------------
 -- | Problem 2: Fill in the implementation of `thm_double` to prove that `double` 
@@ -36,10 +165,26 @@ double :: Peano -> Peano
 double Z     = Z 
 double (S n) = S (S (double n))
 
-{-@ thm_double :: n:Peano -> { double n = add n n } @-}
+{-@ thm_double :: n:Peano -> { double n == add n n } @-}
 thm_double :: Peano -> Proof 
-thm_double = impossible "TBD" 
+thm_double Z
+   = double Z 
+   === Z
+   === add Z Z
+   *** QED
 
+thm_double (S p)
+   = double (S p)
+   === S (S (double p))
+      ? thm_double p
+   === S (S (add p p))
+   === S (add (S p) p)
+      ? thm_add_com (S p) p
+   === S (add p (S p))
+   === add (S p) (S p)
+   *** QED
+
+{-
 --------------------------------------------------------------------------------
 -- | Problem 3: `itadd` is a "tail-recursive" implementation of `add`: prove 
 --              that `itadd` is equivalent to `add`. 
@@ -50,10 +195,57 @@ itadd :: Peano -> Peano -> Peano
 itadd Z     m = m 
 itadd (S n) m = itadd n (S m)
 
-{-@ thm_itadd :: n:_ -> m:_ -> {itadd n m = add n m} @-}
+{-@ thm_itadd :: n:_ -> m:_ -> {itadd n m == add n m} @-}
 thm_itadd :: Peano -> Peano -> Proof 
-thm_itadd = impossible "TBD"
 
+-- Case 1: All Zeros
+thm_itadd Z Z
+   = itadd Z Z
+   === Z
+     ? thm_Z_add Z
+   === add Z Z
+   *** QED
+
+-- Case 2: All nonzeroes
+thm_itadd (S x') (S y')
+   = itadd (S x') (S y')
+   === itadd x' (S (S y'))
+      ? thm_itadd x' (S (S y'))
+   === add x' (S (S y'))
+      ? thm_add_com x' (S (S y'))
+   === add (S (S y')) x'
+   === S (add (S y') x')
+      ? thm_add_com (S y') x'
+   === S (add x' (S y'))
+   === add (S x') (S y')
+   *** QED
+
+-- Case 3: x' Zero
+thm_itadd (S x') Z
+   = itadd (S x') Z
+   === itadd x' (S Z)
+      ? thm_itadd x' (S Z)
+   === add x' (S Z)
+      ? thm_add_com x' (S Z)
+   === add (S Z) x'
+   === S (add Z x')
+      ? thm_add_com Z x'
+   === S (add x' Z)
+   === add (S x') Z
+   *** QED
+
+-- Case 4: Zero y'
+thm_itadd Z (S y')
+   = itadd Z (S y')
+   === (S y')
+     ? thm_Z_add (S y')
+   === add (S y') Z
+     ? thm_add_com (S y') Z
+   === add Z (S y')
+   *** QED
+
+
+-}
 --------------------------------------------------------------------------------
 data List a = Nil | Cons a (List a)
   deriving (Eq, Show)
@@ -79,9 +271,80 @@ itrev :: List a -> List a -> List a
 itrev acc Nil         = acc 
 itrev acc (Cons x xs) = itrev (Cons x acc) xs
 
-{-@ thm_itrev :: xs:_ -> { rev xs == itrev Nil xs } @-}
+
+
+-- First Helper Lemma
+-- Proves that appending Nil to a List x will always return x
+{-@ thm_app_Nil :: x:_ -> {app x Nil == x} @-}
+thm_app_Nil :: List a -> Proof
+
+thm_app_Nil Nil 
+    = app Nil Nil
+    === Nil
+    === Nil
+    *** QED
+
+thm_app_Nil (Cons x xs) 
+    = app (Cons x xs) Nil
+    === Cons x (app xs Nil)
+       ? thm_app_Nil xs
+    === (Cons x xs)
+    *** QED
+
+-- Second Helper Lemma
+-- Tries to prove that itrev x y is the same as app y x
+{-@ thm_itrev_to_app :: x:_ -> y:_ -> {itrev x y == app y x} @-}
+thm_itrev_to_app :: List a -> List a -> Proof
+
+thm_itrev_to_app Nil Nil
+    = itrev Nil Nil
+    === Nil
+    === app Nil Nil
+    *** QED
+
+thm_itrev_to_app (Cons x xs) Nil
+   = itrev (Cons x xs) Nil
+   === (Cons x xs)
+   === app Nil (Cons x xs)
+   *** QED
+
+thm_itrev_to_app Nil (Cons x xs)
+   = itrev Nil (Cons x xs)
+   === undefined
+   *** QED
+
+
+thm_itrev_to_app (Cons x xs) (Cons y ys) 
+   = itrev (Cons x xs) (Cons y ys)
+   === itrev (Cons y (Cons x xs)) ys
+
+   === undefined
+   -- === app (Cons y ys) (Cons x xs)
+   *** QED
+
+
+{-@ thm_itrev :: xs:_ -> { rev xs == itrev Nil xs } @-} 
 thm_itrev :: List a -> Proof 
-thm_itrev = impossible "TBD" 
+
+thm_itrev Nil 
+    = rev Nil
+    === Nil
+    === itrev Nil Nil
+    *** QED
+
+thm_itrev (Cons x xs)
+    = rev (Cons x xs)
+    === app (rev xs) (Cons x Nil)
+       ? thm_itrev xs
+    === app (itrev Nil xs) (Cons x Nil)
+       ? thm_itrev_to_app (Cons x Nil) (itrev Nil xs)
+    === itrev (Cons x Nil) (itrev Nil xs)
+       ? thm_itrev_to_app Nil xs
+    === itrev (Cons x Nil) (app xs Nil)
+       ? thm_app_Nil xs
+    === itrev (Cons x Nil) xs
+    === itrev Nil (Cons x xs)
+    *** QED
 
 --------------------------------------------------------------------------------
 -- | Consider the following `Tree` datatype and associated operations.
@@ -98,17 +361,64 @@ mirror (Node l a r) = Node (mirror r) a (mirror l)
 -- | Problem 5: Prove the following property that `mirror`-ing a `Tree` twice
 --              returns the same `Tree`.
 --------------------------------------------------------------------------------
-{-@ thm_mirror :: t:_ -> { mirror (mirror t) = t } @-}
+{-@ thm_mirror :: t:_ -> { mirror (mirror t) == t } @-}
 thm_mirror :: Tree a -> Proof 
-thm_mirror = impossible "TBD"
 
+thm_mirror Tip 
+   = mirror (mirror (Tip))
+   === mirror (Tip)
+   === Tip
+   *** QED
+
+thm_mirror (Node Tip a Tip)
+   = mirror (mirror (Node Tip a Tip))
+   === mirror (Node (mirror Tip) a (mirror Tip))
+   === mirror (Node Tip a Tip)
+   === Node (mirror Tip) a (mirror Tip)
+   === Node Tip a Tip
+   *** QED
+
+thm_mirror (Node l a Tip)
+   = mirror (mirror (Node l a Tip))
+   === mirror (Node (mirror Tip) a (mirror l))
+   === (Node (mirror(mirror l)) a (mirror(mirror Tip)))
+       ? thm_mirror l
+   === (Node l a (mirror(mirror Tip)))
+   === (Node l a (mirror Tip))
+   === (Node l a Tip)
+   *** QED
+
+thm_mirror (Node Tip a r)
+   = mirror (mirror (Node Tip a r))
+   === mirror (Node (mirror r) a (mirror Tip))
+   === (Node (mirror(mirror Tip)) a (mirror(mirror r)))
+       ? thm_mirror r
+   === (Node (mirror(mirror Tip)) a r)
+   === (Node (mirror Tip) a r)
+   === (Node Tip a r)
+   *** QED
+
+
+thm_mirror (Node l a r)
+   = mirror (mirror (Node l a r))
+   === mirror (Node (mirror r) a (mirror l))
+   === (Node (mirror(mirror l)) a (mirror(mirror r)))
+       ? thm_mirror l
+   === (Node l a (mirror(mirror r)))
+       ? thm_mirror r
+   === (Node l a r)
+   *** QED
 --------------------------------------------------------------------------------
 -- | Problem 6: Fix the implementation of `contents` so that `q6` typechecks 
 --------------------------------------------------------------------------------
 
 {-@ reflect contents @-}
-contents :: Tree a -> List a 
-contents t = Nil 
+contents :: Tree a -> List a
+contents (Tip)                                   = Nil
+--contents (Node l a r)                            = Nil 
+--contents (Tip)                                       = Nil
+contents (Node (Node Tip a Tip) b (Node Tip c Tip))  = Cons a (Cons b (Cons c Nil))
+contents _                                           = Nil
 
 {-@ q6 :: _ -> { v:_ | v = Cons 1 (Cons 2 (Cons 3 Nil)) } @-} 
 q6 :: () -> List Int 
