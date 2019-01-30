@@ -293,33 +293,49 @@ thm_app_Nil (Cons x xs)
 
 -- Second Helper Lemma
 -- Tries to prove that itrev x y is the same as app y x
-{-@ thm_itrev_to_app :: x:_ -> y:_ -> {itrev x y == app y x} @-}
+{-@ thm_itrev_to_app :: x:_ -> y:_ -> {itrev x y == app (rev y) x} @-}
 thm_itrev_to_app :: List a -> List a -> Proof
 
+-- x = Nil, y = Nil
 thm_itrev_to_app Nil Nil
-    = itrev Nil Nil
-    === Nil
-    === app Nil Nil
-    *** QED
+   = itrev Nil Nil
+   === Nil
+   === app Nil Nil
+   === app (rev Nil) Nil
+   *** QED
 
+-- x = (Cons x xs), y = Nil
 thm_itrev_to_app (Cons x xs) Nil
    = itrev (Cons x xs) Nil
    === (Cons x xs)
    === app Nil (Cons x xs)
+   === app (rev Nil) (Cons x xs)
    *** QED
 
+-- x = Nil, y = (Cons x xs)
 thm_itrev_to_app Nil (Cons x xs)
    = itrev Nil (Cons x xs)
-   === undefined
-   *** QED
+   === itrev (Cons x Nil) xs
+      ? thm_app_Nil (Cons x Nil)
+   === itrev (app (Cons x Nil) Nil) xs
+   === itrev (app (app (rev Nil) (Cons x Nil)) Nil) xs
+      ? thm_itrev_to_app (Cons x Nil) Nil
+   === itrev (app (itrev (Cons x Nil) Nil)) xs
+   === itrev (app (Cons x Nil)) xs
+   
+   -- ?????????????????????????????
+  
+   === app (rev xs) (Cons x Nil)
+   === rev(Cons x xs)
+       ? thm_app_Nil (rev (Cons x xs))
+   === app (rev (Cons x xs)) Nil
 
-
-thm_itrev_to_app (Cons x xs) (Cons y ys) 
+-- x = (Cons x xs), y = (Cons y ys)
+thm_itrev_to_app (Cons x xs) (Cons y ys)
    = itrev (Cons x xs) (Cons y ys)
    === itrev (Cons y (Cons x xs)) ys
-
+   -- ???????????????????????????????????????????
    === undefined
-   -- === app (Cons y ys) (Cons x xs)
    *** QED
 
 
@@ -335,14 +351,14 @@ thm_itrev Nil
 thm_itrev (Cons x xs)
     = rev (Cons x xs)
     === app (rev xs) (Cons x Nil)
-       ? thm_itrev xs
-    === app (itrev Nil xs) (Cons x Nil)
-       ? thm_itrev_to_app (Cons x Nil) (itrev Nil xs)
-    === itrev (Cons x Nil) (itrev Nil xs)
-       ? thm_itrev_to_app Nil xs
-    === itrev (Cons x Nil) (app xs Nil)
-       ? thm_app_Nil xs
+       ? thm_itrev_to_app (Cons x Nil) xs
     === itrev (Cons x Nil) xs
+    --   ? thm_itrev_to_app (Cons x Nil) (itrev Nil xs)
+   -- === itrev (Cons x Nil) (itrev Nil xs)
+     --  ? thm_itrev_to_app Nil xs
+   -- === itrev (Cons x Nil) (app xs Nil)
+     --  ? thm_app_Nil xs
+   -- === itrev (Cons x Nil) xs
     === itrev Nil (Cons x xs)
     *** QED
 
