@@ -271,8 +271,6 @@ itrev :: List a -> List a -> List a
 itrev acc Nil         = acc 
 itrev acc (Cons x xs) = itrev (Cons x acc) xs
 
-
-
 -- First Helper Lemma
 -- Proves that appending Nil to a List x will always return x
 {-@ thm_app_Nil :: x:_ -> {app x Nil == x} @-}
@@ -291,6 +289,49 @@ thm_app_Nil (Cons x xs)
     === (Cons x xs)
     *** QED
 
+
+-- Helper Lemma
+-- Proves the association on app
+{-@ thm_app_assoc :: x:_ -> y:_ -> z:_ -> {app x (app y z) == app (app x y) z} @-}
+thm_app_assoc :: List a -> List a -> List a -> Proof
+
+thm_app_assoc Nil Nil Nil
+   = app Nil (app Nil Nil)
+   === app Nil Nil
+   === app (app Nil Nil) Nil
+   *** QED
+
+thm_app_assoc (Cons x xs) ys zs
+   = app (Cons x xs) (app ys zs)
+   === Cons x (app xs (app ys zs))
+      ? thm_app_assoc xs ys zs
+   === Cons x (app (app xs ys) zs)
+   === app (Cons x (app xs ys)) zs
+   === app (app (Cons x xs) ys) zs
+   *** QED
+
+thm_app_assoc Nil ys zs
+   = app Nil (app ys zs)
+   === app ys zs
+   === app (app Nil ys) zs
+   *** QED
+
+thm_app_assoc xs Nil zs
+   = app xs (app Nil zs)
+   === app xs zs
+     ? thm_app_Nil xs
+   === app (app xs Nil) zs
+   === app (app xs Nil) zs
+   *** QED
+
+thm_app_assoc xs ys Nil
+   = app xs (app ys Nil)
+     ? thm_app_Nil ys
+   === app xs ys
+     ? thm_app_Nil (app xs ys)
+   === app (app xs ys) Nil
+   *** QED
+
 -- Second Helper Lemma
 -- Tries to prove that itrev x y is the same as app y x
 {-@ thm_itrev_to_app :: x:_ -> y:_ -> {itrev x y == app (rev y) x} @-}
@@ -304,38 +345,17 @@ thm_itrev_to_app Nil Nil
    === app (rev Nil) Nil
    *** QED
 
--- x = (Cons x xs), y = Nil
-thm_itrev_to_app (Cons x xs) Nil
-   = itrev (Cons x xs) Nil
-   === (Cons x xs)
-   === app Nil (Cons x xs)
-   === app (rev Nil) (Cons x xs)
-   *** QED
-
--- x = Nil, y = (Cons x xs)
-thm_itrev_to_app Nil (Cons x xs)
-   = itrev Nil (Cons x xs)
-   === itrev (Cons x Nil) xs
-      ? thm_app_Nil (Cons x Nil)
-   === itrev (app (Cons x Nil) Nil) xs
-   === itrev (app (app (rev Nil) (Cons x Nil)) Nil) xs
-      ? thm_itrev_to_app (Cons x Nil) Nil
-   === itrev (app (itrev (Cons x Nil) Nil)) xs
-   === itrev (app (Cons x Nil)) xs
-   
-   -- ?????????????????????????????
-  
-   === app (rev xs) (Cons x Nil)
-   === rev(Cons x xs)
-       ? thm_app_Nil (rev (Cons x xs))
-   === app (rev (Cons x xs)) Nil
-
--- x = (Cons x xs), y = (Cons y ys)
-thm_itrev_to_app (Cons x xs) (Cons y ys)
-   = itrev (Cons x xs) (Cons y ys)
-   === itrev (Cons y (Cons x xs)) ys
-   -- ???????????????????????????????????????????
-   === undefined
+-- x = xs, y = (Cons y ys)
+thm_itrev_to_app xs (Cons y ys)
+   = itrev xs (Cons y ys)
+   === itrev (Cons y xs) ys
+      ? thm_itrev_to_app (Cons y xs) ys
+   === app (rev ys) (Cons y xs)
+   === app (rev ys) (Cons y (app Nil xs))
+   === app (rev ys) (app (Cons y Nil) xs)
+      ? thm_app_assoc (rev ys) (Cons y Nil) xs
+   === app (app (rev ys) (Cons y Nil)) xs
+   === app (rev (Cons y ys)) xs
    *** QED
 
 
