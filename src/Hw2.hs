@@ -334,15 +334,16 @@ thm_app_assoc xs ys Nil
 
 -- Second Helper Lemma
 -- Tries to prove that itrev x y is the same as app y x
+{-@ lazy thm_itrev_to_app @-}
 {-@ thm_itrev_to_app :: x:_ -> y:_ -> {itrev x y == app (rev y) x} @-}
 thm_itrev_to_app :: List a -> List a -> Proof
 
--- x = Nil, y = Nil
-thm_itrev_to_app Nil Nil
-   = itrev Nil Nil
-   === Nil
-   === app Nil Nil
-   === app (rev Nil) Nil
+-- x = xs, y = Nil
+thm_itrev_to_app xs Nil
+   = itrev xs Nil
+   === xs
+   === app Nil xs
+   === app (rev Nil) xs
    *** QED
 
 -- x = xs, y = (Cons y ys)
@@ -373,12 +374,6 @@ thm_itrev (Cons x xs)
     === app (rev xs) (Cons x Nil)
        ? thm_itrev_to_app (Cons x Nil) xs
     === itrev (Cons x Nil) xs
-    --   ? thm_itrev_to_app (Cons x Nil) (itrev Nil xs)
-   -- === itrev (Cons x Nil) (itrev Nil xs)
-     --  ? thm_itrev_to_app Nil xs
-   -- === itrev (Cons x Nil) (app xs Nil)
-     --  ? thm_app_Nil xs
-   -- === itrev (Cons x Nil) xs
     === itrev Nil (Cons x xs)
     *** QED
 
@@ -450,9 +445,7 @@ thm_mirror (Node l a r)
 
 {-@ reflect contents @-}
 contents :: Tree a -> List a
-contents (Tip)                                   = Nil
---contents (Node l a r)                            = Nil 
---contents (Tip)                                       = Nil
+contents (Tip)                                       = Nil
 contents (Node (Node Tip a Tip) b (Node Tip c Tip))  = Cons a (Cons b (Cons c Nil))
 contents _                                           = Nil
 
