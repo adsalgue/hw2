@@ -510,7 +510,6 @@ q6 _   = contents t2
 --                  the contents of the original tree.
 --------------------------------------------------------------------------------
 
-{-@ lazy thm_mirror_contents @-}
 {-@ thm_mirror_contents :: t:_ -> { contents (mirror t) = rev (contents t) } @-}
 thm_mirror_contents :: Tree a -> Proof
 
