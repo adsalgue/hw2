@@ -12,6 +12,8 @@ import ProofCombinators
 data Peano = Z | S Peano 
   deriving (Eq, Show)
 
+
+
 --------------------------------------------------------------------------------
 -- | Problem 1: Fill in the implementation of `thm_add_assoc` to prove `add` is 
 --              associative. 
@@ -71,10 +73,19 @@ thm_add_com (S x') y
       ? lemma y x'
    === add y (S x')
    *** QED
-{-
+
+
 {-@ thm_add_assoc :: x:_ -> y:_ -> z:_ -> { add x (add y z) == (add (add x y) z) } @-}
 thm_add_assoc :: Peano -> Peano -> Peano -> Proof 
 
+thm_add_assoc Z y' z'
+   = add Z (add y' z')
+   === add y' z'
+   === add (add Z y') z'
+   *** QED
+   
+
+{-
 -- Case 1: all inputs are 0
 thm_add_assoc Z Z Z
    = add Z (add Z Z)
@@ -91,7 +102,17 @@ thm_add_assoc (S x') (S y') (S z')
    === add (S (add x' (S y'))) (S z')
    === add (add (S x') (S y')) (S z')
    *** QED
+-}
 
+thm_add_assoc (S x') y' z'
+   = add (S x') (add y' z')
+   === S (add x' (add y' z'))
+      ? thm_add_assoc x' y' z'
+   === S (add (add x' y') z')
+   === add (S (add x' y')) z'
+   === add (add (S x') y') z'
+   *** QED
+{-
 
 -- Case 3: x' Zero Zero
 thm_add_assoc x' Z Z
@@ -151,9 +172,8 @@ thm_add_assoc Z x' y'
       ? thm_add_com x' Z
     === add (add Z x') y'
     *** QED
+
 -}
-
-
 
 --------------------------------------------------------------------------------
 -- | Problem 2: Fill in the implementation of `thm_double` to prove that `double` 
@@ -184,7 +204,7 @@ thm_double (S p)
    === add (S p) (S p)
    *** QED
 
-{-
+
 --------------------------------------------------------------------------------
 -- | Problem 3: `itadd` is a "tail-recursive" implementation of `add`: prove 
 --              that `itadd` is equivalent to `add`. 
@@ -198,6 +218,27 @@ itadd (S n) m = itadd n (S m)
 {-@ thm_itadd :: n:_ -> m:_ -> {itadd n m == add n m} @-}
 thm_itadd :: Peano -> Peano -> Proof 
 
+thm_itadd Z y'
+   = itadd Z y'
+   === y'
+   === add Z y'
+   *** QED
+
+thm_itadd (S x') y'
+   = itadd (S x') y'
+   === itadd x' (S y')
+     ? thm_itadd x' (S y')
+   === add x' (S y')
+     ? thm_add_com x' (S y')
+   === add (S y') x'
+   === S (add y' x')
+     ? thm_add_com x' y'
+   === S (add x' y')
+   === add (S x') y'
+   *** QED
+
+
+{-
 -- Case 1: All Zeros
 thm_itadd Z Z
    = itadd Z Z
@@ -244,8 +285,11 @@ thm_itadd Z (S y')
    === add Z (S y')
    *** QED
 
-
 -}
+
+
+
+
 --------------------------------------------------------------------------------
 data List a = Nil | Cons a (List a)
   deriving (Eq, Show)
@@ -259,6 +303,7 @@ app (Cons x xs) ys = Cons x (app xs ys)
 rev :: List a -> List a 
 rev Nil         = Nil 
 rev (Cons x xs) = app (rev xs) (Cons x Nil)
+
 
 --------------------------------------------------------------------------------
 -- | Problem 4: `itrev` is a "tail-recursive" implementation of `rev`: prove 
@@ -377,6 +422,7 @@ thm_itrev (Cons x xs)
     === itrev Nil (Cons x xs)
     *** QED
 
+
 --------------------------------------------------------------------------------
 -- | Consider the following `Tree` datatype and associated operations.
 --------------------------------------------------------------------------------
@@ -400,7 +446,7 @@ thm_mirror Tip
    === mirror (Tip)
    === Tip
    *** QED
-
+{-
 thm_mirror (Node Tip a Tip)
    = mirror (mirror (Node Tip a Tip))
    === mirror (Node (mirror Tip) a (mirror Tip))
@@ -428,7 +474,7 @@ thm_mirror (Node Tip a r)
    === (Node (mirror Tip) a r)
    === (Node Tip a r)
    *** QED
-
+-}
 
 thm_mirror (Node l a r)
    = mirror (mirror (Node l a r))
@@ -445,9 +491,11 @@ thm_mirror (Node l a r)
 
 {-@ reflect contents @-}
 contents :: Tree a -> List a
-contents (Tip)                                       = Nil
-contents (Node (Node Tip a Tip) b (Node Tip c Tip))  = Cons a (Cons b (Cons c Nil))
-contents _                                           = Nil
+contents Tip                            = Nil
+-- contents (Node (Node l b q) a r)        = app (app (contents (Node l b q)) (Cons a Nil)) (contents r)
+-- contents (Node Tip a r)                 = app (app (contents Tip) (Cons a Nil)) (contents r)
+contents (Node l a r)                   = app (app (contents l) (Cons a Nil)) (contents r)
+
 
 {-@ q6 :: _ -> { v:_ | v = Cons 1 (Cons 2 (Cons 3 Nil)) } @-} 
 q6 :: () -> List Int 
@@ -464,4 +512,29 @@ q6 _   = contents t2
 
 {-@ thm_mirror_contents :: t:_ -> { contents (mirror t) = rev (contents t) } @-}
 thm_mirror_contents :: Tree a -> Proof
-thm_mirror_contents = impossible "TBD"
+
+thm_mirror_contents Tip 
+   = contents (mirror Tip)
+   === Nil
+   === rev (Nil)
+   === rev (contents Tip)
+   *** QED
+
+thm_mirror_contents (Node l a r)
+   = contents (mirror (Node l a r))
+   === contents (Node (mirror r) a (mirror l))
+    === app (app (contents (mirror r)) (Cons a Nil)) (contents (mirror l))
+      ? thm_mirror_contents r
+      ? thm_mirror_contents l
+   === app (app (rev (contents r)) (Cons a Nil)) (rev (contents l))
+   === app (rev (Cons a (contents r)))(rev(contents l))
+
+   === undefined
+
+   -- === 
+   -- === rev (app (contents l)(Cons a (contents r))
+   -- === rev (app (contents l)(Cons a (app Nil (contents r)))
+   -- === rev (app (contents l)(app (Cons a Nil)(contents r))
+   -- === rev (app (app (contents l) (Cons a Nil)) (contents r))
+   -- === rev (contents (Node l a r))
+   *** QED
