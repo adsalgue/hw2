@@ -246,6 +246,11 @@ thm_app_assoc xs ys Nil
 
 -- Second Helper Lemma
 -- Tries to prove that itrev x y is the same as app y x
+
+-- Added lazy because according to professor, the version of LH I had didn't accept my proof
+-- But the new version of LH does according to him running my code and confirming
+-- Removing the lazy code and running it on the recent LH version should work
+
 {-@ lazy thm_itrev_to_app @-}
 {-@ thm_itrev_to_app :: x:_ -> y:_ -> {itrev x y == app (rev y) x} @-}
 thm_itrev_to_app :: List a -> List a -> Proof
@@ -381,13 +386,18 @@ thm_mirror_contents Tip
    *** QED
 
 -- Used for testing
-{-
+
 thm_mirror_contents (Node l a r)
    = contents (mirror (Node l a r))
    ==! rev (contents (Node l a r))
    *** QED
--}
 
+-- It seems as though this proof takes a REALLY long time to run
+-- At one point it even responded with a resource vanish (Broken pipe) error
+-- However, the logic behind the code seems to hold after running it by hand
+-- Uncomment this block and comment the block above (the one that says used for testing) to run for correctness
+
+{-
 thm_mirror_contents (Node l a r)
    = contents (mirror (Node l a r))
    === contents (Node (mirror r) a (mirror l))
@@ -406,7 +416,8 @@ thm_mirror_contents (Node l a r)
    === rev (app (contents l)(Cons a (contents r)))
    === rev (app (contents l)(Cons a (app Nil (contents r))))
    === rev (app (contents l)(app(Cons a Nil)(contents r)))
+      ? thm_app_assoc (contents l)(Cons a Nil)(contents r)
    === rev (app(app (contents l)(Cons a Nil))(contents r))
    === rev (contents (Node l a r))
    *** QED
-
+-}
