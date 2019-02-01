@@ -85,25 +85,6 @@ thm_add_assoc Z y' z'
    *** QED
    
 
-{-
--- Case 1: all inputs are 0
-thm_add_assoc Z Z Z
-   = add Z (add Z Z)
-   === add Z Z
-   === (add (add Z Z) Z)
-   *** QED
-
---- Case 2: all inputs are nonzero
-thm_add_assoc (S x') (S y') (S z')
-   = add (S x') (add (S y') (S z'))
-   === S (add x' (add (S y') (S z')))
-       ? thm_add_assoc x' (S y') (S z')
-   === S (add (add x' (S y')) (S z'))
-   === add (S (add x' (S y'))) (S z')
-   === add (add (S x') (S y')) (S z')
-   *** QED
--}
-
 thm_add_assoc (S x') y' z'
    = add (S x') (add y' z')
    === S (add x' (add y' z'))
@@ -112,68 +93,6 @@ thm_add_assoc (S x') y' z'
    === add (S (add x' y')) z'
    === add (add (S x') y') z'
    *** QED
-{-
-
--- Case 3: x' Zero Zero
-thm_add_assoc x' Z Z
-    = add x' (add Z Z)
-    === add x' Z
-        ? thm_Z_add x'
-    === add (add x' Z) Z
-    *** QED
-
--- Case 4: Zero y' Zero
-thm_add_assoc Z y' Z
-    = add Z (add y' Z)
-       ? thm_Z_add y'
-    === add Z y'
-       ? thm_Z_add (add y' Z)
-    === add (add Z y') Z
-    *** QED
-
--- Case 5: Zero Zero z'
-thm_add_assoc Z Z z'
-    = add Z (add Z z')
-       ? thm_add_com Z z'
-    === add Z (add z' Z)
-       ? thm_Z_add z'
-    === add Z z'
-       ? thm_Z_add (add z' Z)
-    === add (add Z Z) z'
-    *** QED
-
--- Case 6: x' y' Zero
-thm_add_assoc x' y' Z
-    = add x' (add y' Z)
-        ? thm_Z_add y'
-    === add x' y'
-        ? thm_Z_add (add x' y')
-    === add (add x' y') Z
-    *** QED
-
--- Case 7: x' Zero y'
-thm_add_assoc x' Z y'
-    = add x' (add Z y')
-       ? thm_add_com Z y'
-    === add x' (add y' Z)
-       ? thm_Z_add x'
-    === add (add x' Z) (add y' Z)
-       ? thm_Z_add y'
-    === add (add x' Z) y'
-    *** QED
-
--- Case 8: Zero y' z'
-thm_add_assoc Z x' y'
-    = add Z (add x' y')
-      ? thm_Z_add (add x' y')
-    === add x' y'
-      ? thm_Z_add x'
-    === add (add x' Z) y'
-      ? thm_add_com x' Z
-    === add (add Z x') y'
-    *** QED
-
--}
 
 --------------------------------------------------------------------------------
 -- | Problem 2: Fill in the implementation of `thm_double` to prove that `double` 
@@ -236,58 +155,6 @@ thm_itadd (S x') y'
    === S (add x' y')
    === add (S x') y'
    *** QED
-
-
-{-
--- Case 1: All Zeros
-thm_itadd Z Z
-   = itadd Z Z
-   === Z
-     ? thm_Z_add Z
-   === add Z Z
-   *** QED
-
--- Case 2: All nonzeroes
-thm_itadd (S x') (S y')
-   = itadd (S x') (S y')
-   === itadd x' (S (S y'))
-      ? thm_itadd x' (S (S y'))
-   === add x' (S (S y'))
-      ? thm_add_com x' (S (S y'))
-   === add (S (S y')) x'
-   === S (add (S y') x')
-      ? thm_add_com (S y') x'
-   === S (add x' (S y'))
-   === add (S x') (S y')
-   *** QED
-
--- Case 3: x' Zero
-thm_itadd (S x') Z
-   = itadd (S x') Z
-   === itadd x' (S Z)
-      ? thm_itadd x' (S Z)
-   === add x' (S Z)
-      ? thm_add_com x' (S Z)
-   === add (S Z) x'
-   === S (add Z x')
-      ? thm_add_com Z x'
-   === S (add x' Z)
-   === add (S x') Z
-   *** QED
-
--- Case 4: Zero y'
-thm_itadd Z (S y')
-   = itadd Z (S y')
-   === (S y')
-     ? thm_Z_add (S y')
-   === add (S y') Z
-     ? thm_add_com (S y') Z
-   === add Z (S y')
-   *** QED
-
--}
-
-
 
 
 --------------------------------------------------------------------------------
@@ -446,35 +313,6 @@ thm_mirror Tip
    === mirror (Tip)
    === Tip
    *** QED
-{-
-thm_mirror (Node Tip a Tip)
-   = mirror (mirror (Node Tip a Tip))
-   === mirror (Node (mirror Tip) a (mirror Tip))
-   === mirror (Node Tip a Tip)
-   === Node (mirror Tip) a (mirror Tip)
-   === Node Tip a Tip
-   *** QED
-
-thm_mirror (Node l a Tip)
-   = mirror (mirror (Node l a Tip))
-   === mirror (Node (mirror Tip) a (mirror l))
-   === (Node (mirror(mirror l)) a (mirror(mirror Tip)))
-       ? thm_mirror l
-   === (Node l a (mirror(mirror Tip)))
-   === (Node l a (mirror Tip))
-   === (Node l a Tip)
-   *** QED
-
-thm_mirror (Node Tip a r)
-   = mirror (mirror (Node Tip a r))
-   === mirror (Node (mirror r) a (mirror Tip))
-   === (Node (mirror(mirror Tip)) a (mirror(mirror r)))
-       ? thm_mirror r
-   === (Node (mirror(mirror Tip)) a r)
-   === (Node (mirror Tip) a r)
-   === (Node Tip a r)
-   *** QED
--}
 
 thm_mirror (Node l a r)
    = mirror (mirror (Node l a r))
@@ -509,6 +347,28 @@ q6 _   = contents t2
 -- | Problem 7 (**) Prove that the contents of a mirrored tree are the reverse of 
 --                  the contents of the original tree.
 --------------------------------------------------------------------------------
+{-@ thm_app_rev :: x:_ -> y:_ -> {rev (app x y) == app (rev y) (rev x)} @-}
+thm_app_rev :: List a -> List a -> Proof
+
+thm_app_rev Nil ys 
+   = rev (app Nil ys)
+   === rev ys
+      ? thm_app_Nil (rev ys)
+   === app (rev ys) Nil
+   === app (rev ys) (rev Nil)
+   *** QED
+
+thm_app_rev (Cons x xs) ys
+   = rev (app (Cons x xs) ys)
+   === rev (Cons x (app xs ys))
+   === app (rev (app xs ys))(Cons x Nil)
+     ? thm_app_rev xs ys
+   === app (app (rev ys) (rev xs))(Cons x Nil)
+     ? thm_app_assoc (rev ys) (rev xs) (Cons x Nil)
+   === app (rev ys)(app (rev xs)(Cons x Nil))
+   === app (rev ys)(rev (Cons x xs))
+   *** QED
+
 
 {-@ thm_mirror_contents :: t:_ -> { contents (mirror t) = rev (contents t) } @-}
 thm_mirror_contents :: Tree a -> Proof
@@ -520,24 +380,33 @@ thm_mirror_contents Tip
    === rev (contents Tip)
    *** QED
 
+-- Used for testing
+{-
+thm_mirror_contents (Node l a r)
+   = contents (mirror (Node l a r))
+   ==! rev (contents (Node l a r))
+   *** QED
+-}
+
 thm_mirror_contents (Node l a r)
    = contents (mirror (Node l a r))
    === contents (Node (mirror r) a (mirror l))
-    === app (app (contents (mirror r)) (Cons a Nil)) (contents (mirror l))
-      ? thm_mirror_contents r
+   === app (app (contents (mirror r)) (Cons a Nil)) (contents(mirror l))
       ? thm_mirror_contents l
-   === app (app (rev (contents r)) (Cons a Nil)) (rev (contents l))
+      ? thm_mirror_contents r
+   === app (app (rev (contents r))(Cons a Nil)) (rev(contents l))
    === app (rev (Cons a (contents r)))(rev(contents l))
-
-
-   -- ****** Proof in progress *****
-
-   === undefined
-
-   -- === 
-   -- === rev (app (contents l)(Cons a (contents r))
-   -- === rev (app (contents l)(Cons a (app Nil (contents r)))
-   -- === rev (app (contents l)(app (Cons a Nil)(contents r))
-   -- === rev (app (app (contents l) (Cons a Nil)) (contents r))
-   -- === rev (contents (Node l a r))
+      ? thm_app_rev (Cons a (contents r))(contents l)
+   === rev (app (contents l)(Cons a (contents r)))
+      ? thm_app_Nil (rev (app (contents l)(Cons a (contents r))))
+   === app (rev (app (contents l)(Cons a (contents r)))) Nil
+      ? thm_itrev_to_app Nil (app(contents l)(Cons a (contents r)))
+   === itrev Nil (app (contents l)(Cons a (contents r)))
+      ? thm_itrev (app(contents l)(Cons a (contents r)))
+   === rev (app (contents l)(Cons a (contents r)))
+   === rev (app (contents l)(Cons a (app Nil (contents r))))
+   === rev (app (contents l)(app(Cons a Nil)(contents r)))
+   === rev (app(app (contents l)(Cons a Nil))(contents r))
+   === rev (contents (Node l a r))
    *** QED
+
