@@ -352,6 +352,9 @@ q6 _   = contents t2
 -- | Problem 7 (**) Prove that the contents of a mirrored tree are the reverse of 
 --                  the contents of the original tree.
 --------------------------------------------------------------------------------
+
+-- Helper theorem that shows that appending two reversed list is the same thing 
+-- as reversing the normal append of those two lists
 {-@ thm_app_rev :: x:_ -> y:_ -> {rev (app x y) == app (rev y) (rev x)} @-}
 thm_app_rev :: List a -> List a -> Proof
 
@@ -385,19 +388,7 @@ thm_mirror_contents Tip
    === rev (contents Tip)
    *** QED
 
--- Used for testing
 
-thm_mirror_contents (Node l a r)
-   = contents (mirror (Node l a r))
-   ==! rev (contents (Node l a r))
-   *** QED
-
--- It seems as though this proof takes a REALLY long time to run
--- At one point it even responded with a resource vanish (Broken pipe) error
--- However, the logic behind the code seems to hold after running it by hand
--- Uncomment this block and comment the block above (the one that says used for testing) to run for correctness
-
-{-
 thm_mirror_contents (Node l a r)
    = contents (mirror (Node l a r))
    === contents (Node (mirror r) a (mirror l))
@@ -406,7 +397,7 @@ thm_mirror_contents (Node l a r)
       ? thm_mirror_contents r
    === app (app (rev (contents r))(Cons a Nil)) (rev(contents l))
    === app (rev (Cons a (contents r)))(rev(contents l))
-      ? thm_app_rev (Cons a (contents r))(contents l)
+      ? thm_app_rev (contents l)(Cons a (contents r))
    === rev (app (contents l)(Cons a (contents r)))
       ? thm_app_Nil (rev (app (contents l)(Cons a (contents r))))
    === app (rev (app (contents l)(Cons a (contents r)))) Nil
@@ -420,4 +411,4 @@ thm_mirror_contents (Node l a r)
    === rev (app(app (contents l)(Cons a Nil))(contents r))
    === rev (contents (Node l a r))
    *** QED
--}
+
